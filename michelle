@@ -1,0 +1,82 @@
+1. Situation
+We are dealing with an outage in Google Cloud’s us-central1 region. The outage may involve services such as Cloud SQL, Compute Engine, Cloud Storage, and Pub/Sub, which could lead to disruptions in our production environment. The priority is to ensure minimal downtime and data loss, as well as to maintain the business continuity of critical services.
+
+Key challenges:
+
+Outage in the primary region (us-central1) will impact SQL databases, storage, and event processing.
+
+Immediate recovery needs to minimize downtime, ensure data integrity, and failover to a secondary region.
+
+2. Task
+The task is to quickly restore services and ensure minimal disruption to production workloads by:
+
+Failing over Cloud SQL to a secondary region.
+
+Ensuring data continuity in Cloud Storage with multi-region replication.
+
+Setting up alert systems to monitor and mitigate issues via Pub/Sub.
+
+3. Action
+Cloud SQL Replica Failover
+Action: Implement a Cloud SQL failover mechanism using Cloud SQL replicas in a secondary region (e.g., us-west1).
+
+Steps:
+
+Cloud SQL Instance Replication: Create a read replica in a multi-region setup. This replica should ideally be in a geographically distant region (e.g., us-west1 or europe-west1), which ensures that the secondary instance will not be impacted by an outage in us-central1.
+
+Automatic Failover: Cloud SQL supports automatic failover for replicas in case of an outage. By ensuring that the primary instance in us-central1 has a read replica in us-west1, the system can automatically promote the replica to the primary instance if us-central1 goes down.
+
+Manual Intervention (Optional): If the failover doesn’t occur automatically, a manual promotion of the replica can be done through the Google Cloud Console or gcloud CLI.
+
+Outcome: After failover, the database continues to operate in us-west1 with minimal downtime. Write operations will resume, and data consistency is maintained through replication.
+
+Multi-Region Cloud Storage
+Action: Enable multi-region Cloud Storage buckets to ensure that data stored in Cloud Storage is replicated across multiple regions.
+
+Steps:
+
+Create a multi-region Cloud Storage bucket in a global or multi-region configuration to replicate data across multiple Google Cloud regions.
+
+If us-central1 is affected, Google Cloud automatically serves data from other regions, ensuring high availability of files and blobs stored in Cloud Storage.
+
+For critical workloads, versioning can be enabled to protect against data corruption or accidental deletion during the outage.
+
+Outcome: Cloud Storage will continue to be available even in the event of a regional outage. Data loss is mitigated by replication across regions, and the application can still retrieve necessary data.
+
+Pub/Sub Alerts and Monitoring
+Action: Set up Pub/Sub alerts to monitor system health and detect service outages early.
+
+Steps:
+
+Create Google Cloud Monitoring alerts to track critical metrics such as database performance, storage availability, and the health of compute resources.
+
+Cloud Pub/Sub can be configured to notify the operations team when a failure is detected or when resources are switching between regions due to failover.
+
+Pub/Sub Integration: Use Cloud Pub/Sub topics to notify internal systems or trigger automated workflows (like scaling services or re-routing traffic) based on predefined criteria such as:
+
+Failover triggers for Cloud SQL.
+
+Outage notification from Stackdriver Monitoring.
+
+Latency or performance degradation across services.
+
+Outcome: This proactive alert system provides real-time notifications, enabling the team to take immediate corrective action, such as scaling up services, handling traffic shifts, or initiating manual failovers.
+
+4. Result
+Reduced Downtime: Using Cloud SQL replicas and multi-region Cloud Storage ensures that services are resilient and continue with minimal service interruption.
+
+High Availability: Data across regions is preserved, and applications automatically adjust to continue functioning seamlessly from the backup region.
+
+Faster Recovery: Pub/Sub alerts provide instant feedback to operations teams, allowing for quick response times and automated handling of certain failure scenarios.
+
+Business Continuity: The plan ensures that the organization can maintain critical services and fulfill customer requirements despite the regional outage in us-central1.
+
+Example of an End-to-End Recovery Flow:
+Cloud SQL Failover: During the us-central1 outage, traffic to the Cloud SQL database is automatically redirected to the replica in us-west1. Any new writes are handled by the promoted instance in the new region.
+
+Cloud Storage Availability: Files and data stored in the multi-region Cloud Storage bucket continue to be accessible via other available regions. If the region in question goes down, Cloud Storage automatically serves the files from another region (e.g., us-east1).
+
+Real-Time Monitoring: Cloud Pub/Sub alerts trigger an incident in the monitoring dashboard, notifying the operations team of the outage. If the failover process is not automatic, the team can intervene to promote replicas manually or take necessary actions.
+
+By implementing this STAR-based disaster recovery plan, the organization is well-prepared for a regional outage in us-central1 while minimizing service disruption, ensuring data consistency, and protecting the user experience.
+
